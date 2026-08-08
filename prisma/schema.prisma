@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(ATTENDANT)
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+}
+
+enum Role {
+  ADMIN
+  ATTENDANT
+}
+
+model Client {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  phone        String
+  email        String?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  deletedAt    DateTime?
+  appointments Appointment[]
+}
+
+model Professional {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  specialties  String[]
+  workStart    String
+  workEnd      String
+  createdAt    DateTime      @default(now())
+  deletedAt    DateTime?
+  appointments Appointment[]
+}
+
+model Service {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  durationMin  Int
+  price        Float
+  createdAt    DateTime      @default(now())
+  deletedAt    DateTime?
+  appointments Appointment[]
+}
+
+model Appointment {
+  id             String            @id @default(auto()) @map("_id") @db.ObjectId
+  date           DateTime
+  status         AppointmentStatus @default(SCHEDULED)
+  client         Client            @relation(fields: [clientId], references: [id])
+  clientId       String            @db.ObjectId
+  professional   Professional      @relation(fields: [professionalId], references: [id])
+  professionalId String            @db.ObjectId
+  service        Service           @relation(fields: [serviceId], references: [id])
+  serviceId      String            @db.ObjectId
+  createdAt      DateTime          @default(now())
+  deletedAt      DateTime?
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  DONE
+  CANCELED
+}
