@@ -4,12 +4,13 @@
   "description": "",
   "main": "src/server.ts",
   "type": "module",
-  "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "prisma:generate": "prisma generate"
-  },
+"scripts": {
+  "dev": "tsx watch src/server.ts",
+  "build": "tsc",
+  "start": "node dist/src/server.js",
+  "prisma:generate": "prisma generate",
+  "seed": "tsx prisma/seed.ts"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -23,7 +24,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "prisma": "^6.19.3",
     "tsx": "^4.23.11",
     "typescript": "^7.0.2"

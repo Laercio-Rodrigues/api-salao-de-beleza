@@ -1,6 +1,22 @@
+import "dotenv/config";
 import Fastify from "fastify";
+import { ZodError } from "zod";
+import { authRoutes } from "./modules/auth/auth.routes.js";
 
 const app = Fastify({ logger: true });
+
+app.setErrorHandler((error, request, reply) => {
+  if (error instanceof ZodError) {
+    return reply
+      .status(400)
+      .send({ message: "Dado inválidos", issues: error.issues });
+  }
+
+  app.log.error(error);
+  return reply.status(500).send({ message: "Erro interno do servidor" });
+});
+
+app.register(authRoutes);
 
 app.get("/health", async () => {
   return { status: "ok" };
