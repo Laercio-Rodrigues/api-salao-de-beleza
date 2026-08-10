@@ -13,7 +13,7 @@ export async function authGuard(request: FastifyRequest, reply: FastifyReply) {
     return reply.status(401).send({ message: "Token não enviado" });
   }
 
-  const [, token] = authHeader.split("");
+  const [, token] = authHeader.split(" ");
 
   if (!token) {
     return reply.status(401).send({ message: "Token mal formatado" });

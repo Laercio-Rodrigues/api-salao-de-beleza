@@ -2,6 +2,7 @@ import "dotenv/config";
 import Fastify from "fastify";
 import { ZodError } from "zod";
 import { authRoutes } from "./modules/auth/auth.routes.js";
+import { clientsRoutes } from "./modules/clients/clients.routes.js";
 
 const app = Fastify({ logger: true });
 
@@ -17,6 +18,7 @@ app.setErrorHandler((error, request, reply) => {
 });
 
 app.register(authRoutes);
+app.register(clientsRoutes);
 
 app.get("/health", async () => {
   return { status: "ok" };
