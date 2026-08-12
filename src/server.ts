@@ -3,6 +3,9 @@ import Fastify from "fastify";
 import { ZodError } from "zod";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { clientsRoutes } from "./modules/clients/clients.routes.js";
+import { professionalsRoutes } from "./modules/professionals/professionals.routes.js";
+import { servicesRutes } from "./modules/services/services.routes.js";
+import { appointmentsRoutes } from "./modules/appointments/appointments.routes.js";
 
 const app = Fastify({ logger: true });
 
@@ -19,6 +22,9 @@ app.setErrorHandler((error, request, reply) => {
 
 app.register(authRoutes);
 app.register(clientsRoutes);
+app.register(professionalsRoutes);
+app.register(servicesRutes);
+app.register(appointmentsRoutes);
 
 app.get("/health", async () => {
   return { status: "ok" };
