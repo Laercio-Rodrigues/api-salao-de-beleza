@@ -1,6 +1,8 @@
 import "dotenv/config";
 import Fastify from "fastify";
 import { ZodError } from "zod";
+import cors from "@fastify/cors";
+
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { clientsRoutes } from "./modules/clients/clients.routes.js";
 import { professionalsRoutes } from "./modules/professionals/professionals.routes.js";
@@ -9,15 +11,24 @@ import { appointmentsRoutes } from "./modules/appointments/appointments.routes.j
 
 const app = Fastify({ logger: true });
 
+// Configuração do CORS
+app.register(cors, {
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+});
+
 app.setErrorHandler((error, request, reply) => {
   if (error instanceof ZodError) {
-    return reply
-      .status(400)
-      .send({ message: "Dado inválidos", issues: error.issues });
+    return reply.status(400).send({
+      message: "Dado inválidos",
+      issues: error.issues,
+    });
   }
 
   app.log.error(error);
-  return reply.status(500).send({ message: "Erro interno do servidor" });
+
+  return reply.status(500).send({
+    message: "Erro interno do servidor",
+  });
 });
 
 app.register(authRoutes);
@@ -27,13 +38,18 @@ app.register(servicesRutes);
 app.register(appointmentsRoutes);
 
 app.get("/health", async () => {
-  return { status: "ok" };
+  return {
+    status: "ok",
+  };
 });
 
 const PORT = Number(process.env.PORT) || 3333;
 
 app
-  .listen({ port: PORT, host: "0.0.0.0" })
+  .listen({
+    port: PORT,
+    host: "0.0.0.0",
+  })
   .then(() => console.log(`Servidor rodando na porta ${PORT}`))
   .catch((err) => {
     app.log.error(err);
