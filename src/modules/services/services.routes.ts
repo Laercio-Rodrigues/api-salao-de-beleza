@@ -19,7 +19,7 @@ const notDeletedFilter = {
   OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
 };
 
-export async function servicesRutes(app: FastifyInstance) {
+export async function servicesRoutes(app: FastifyInstance) {
   app.addHook("preHandler", authGuard);
 
   // CREATE service
