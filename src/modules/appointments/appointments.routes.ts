@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { authGuard } from '../../plugins/auth-guard.js'
+import { hasConflict } from '../../lib/availability.js'
+import { brazilDayRange } from '../../lib/time.js'
 
 const createAppointmentSchema = z.object({
   date: z.iso.datetime({ offset: true }),
@@ -24,47 +26,6 @@ const paramsSchema = z.object({
 
 const notDeletedFilter = {
   OR: [{ deletedAt: null }, { deletedAt: { isSet: false } }],
-}
-
-// Converte um Date (instante UTC) para a data-calendário correspondente
-// no fuso horário de Brasília, no formato "YYYY-MM-DD". Usar Intl aqui
-// garante o resultado certo independente do fuso horário configurado
-// no servidor onde o código está rodando (crucial em produção, onde
-// containers Docker costumam rodar em UTC por padrão).
-function toBrazilDateString(date: Date) {
-  return date.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
-}
-
-// Constrói o início e o fim do dia (00:00:00 até 23:59:59.999), sempre
-// no horário de Brasília, a partir de uma string "YYYY-MM-DD".
-function brazilDayRange(dateString: string) {
-  return {
-    dayStart: new Date(`${dateString}T00:00:00-03:00`),
-    dayEnd: new Date(`${dateString}T23:59:59.999-03:00`),
-  }
-}
-
-async function hasConflict(professionalId: string, start: Date, end: Date) {
-  const { dayStart, dayEnd } = brazilDayRange(toBrazilDateString(start))
-
-  const appointmentsOfDay = await prisma.appointment.findMany({
-    where: {
-      professionalId,
-      date: { gte: dayStart, lte: dayEnd },
-      status: { not: 'CANCELED' },
-      ...notDeletedFilter,
-    },
-    include: { service: true },
-  })
-
-  return appointmentsOfDay.some((appointment: (typeof appointmentsOfDay)[number]) => {
-    const existingStart = appointment.date
-    const existingEnd = new Date(
-      existingStart.getTime() + appointment.service.durationMin * 60000,
-    )
-
-    return existingStart < end && existingEnd > start
-  })
 }
 
 export async function appointmentsRoutes(app: FastifyInstance) {

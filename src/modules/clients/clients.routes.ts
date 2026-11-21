@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '../../lib/prisma.js'
 import { authGuard } from '../../plugins/auth-guard.js'
@@ -15,6 +16,13 @@ const updateClientSchema = createClientSchema.partial()
 const paramsSchema = z.object({
   id: z.string(),
 })
+
+const resetPasswordSchema = z.object({
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+})
+
+// Só informa se a cliente tem conta no app/site (e qual e-mail usa para entrar).
+const withAccount = { account: { select: { email: true } } } as const
 
 // MongoDB não obriga um campo a existir em todo documento. Como "deletedAt"
 // só é preenchido quando o registro é removido, clientes ativos podem tê-lo
@@ -39,6 +47,7 @@ export async function clientsRoutes(app: FastifyInstance) {
   app.get('/clients', async (request, reply) => {
     const clients = await prisma.client.findMany({
       where: notDeletedFilter,
+      include: withAccount,
       orderBy: { name: 'asc' },
     })
 
@@ -93,6 +102,32 @@ export async function clientsRoutes(app: FastifyInstance) {
     await prisma.client.update({
       where: { id },
       data: { deletedAt: new Date() },
+    })
+
+    return reply.status(204).send()
+  })
+
+  // Cliente esqueceu a senha do app/site: a equipe define uma nova e passa para ela.
+  app.patch('/clients/:id/password', async (request, reply) => {
+    const { id } = paramsSchema.parse(request.params)
+    const { password } = resetPasswordSchema.parse(request.body)
+
+    const client = await prisma.client.findFirst({
+      where: { id, ...notDeletedFilter },
+      include: { account: true },
+    })
+
+    if (!client) {
+      return reply.status(404).send({ message: 'Cliente não encontrado' })
+    }
+
+    if (!client.account) {
+      return reply.status(400).send({ message: 'Esse cliente não tem conta no app/site' })
+    }
+
+    await prisma.clientAccount.update({
+      where: { id: client.account.id },
+      data: { passwordHash: await bcrypt.hash(password, 10) },
     })
 
     return reply.status(204).send()

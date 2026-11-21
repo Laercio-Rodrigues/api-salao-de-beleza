@@ -31,6 +31,7 @@ model Client {
   createdAt    DateTime      @default(now())
   deletedAt    DateTime?
   appointments Appointment[]
+  account      ClientAccount?
 }
 
 model Professional {
@@ -66,6 +67,15 @@ model Appointment {
   serviceId      String            @db.ObjectId
   createdAt      DateTime          @default(now())
   deletedAt      DateTime?
+}
+
+model ClientAccount {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  client       Client   @relation(fields: [clientId], references: [id])
+  clientId     String   @unique @db.ObjectId
 }
 
 enum AppointmentStatus {

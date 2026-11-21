@@ -7,6 +7,9 @@ import { clientsRoutes } from './modules/clients/clients.routes.js'
 import { professionalsRoutes } from './modules/professionals/professionals.routes.js'
 import { servicesRoutes } from './modules/services/services.routes.js'
 import { appointmentsRoutes } from './modules/appointments/appointments.routes.js'
+import { customerRoutes } from './modules/customer/customer.routes.js'
+import { publicRoutes } from './modules/public/public.routes.js'
+import { usersRoutes } from './modules/users/users.routes.js'
 
 const app = Fastify({ logger: true })
 
@@ -36,6 +39,9 @@ app.register(clientsRoutes)
 app.register(professionalsRoutes)
 app.register(servicesRoutes)
 app.register(appointmentsRoutes)
+app.register(customerRoutes)
+app.register(publicRoutes)
+app.register(usersRoutes)
 
 app.get('/health', async () => {
   return { status: 'ok' }
